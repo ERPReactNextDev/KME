@@ -14,13 +14,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Acculog - Attendance & Time Tracking System",
+  title: "Shifts - Room Reservation System",
   description: "Created in NextJs Developed By Fluxx Tech Solutions",
   icons: {
     icon: "/fluxx.png",
   },
   manifest: "/manifest.json",
-  themeColor: "#0f766e",
+  // themeColor removed from metadata to avoid warning
+};
+
+// Optional: define viewport if needed
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  userScalable: true,
+  minimumScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -28,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.json" />
+        {/* theme-color is directly in head, compliant sa Next.js 14+ */}
         <meta name="theme-color" content="#0f766e" />
       </head>
       <body className={`${inter.variable} font-sans antialiased relative`}>

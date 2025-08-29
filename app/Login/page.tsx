@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ToastContainer, toast } from "react-toastify";
 import { FiMail, FiLock } from "react-icons/fi";
-import { LuFingerprint } from "react-icons/lu";
 import "react-toastify/dist/ReactToastify.css";
 
 const Login: React.FC = () => {
@@ -13,11 +12,6 @@ const Login: React.FC = () => {
   const [Password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  const isWebAuthnSupported = () =>
-    typeof window !== "undefined" &&
-    window.PublicKeyCredential &&
-    typeof window.PublicKeyCredential === "function";
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -41,7 +35,7 @@ const Login: React.FC = () => {
           toast.success("Login successful!");
           setTimeout(() => {
             router.push(
-              `/Acculog/Attendance/Dashboard?id=${encodeURIComponent(result.userId)}`
+              `/Shifts/Reservation/Dashboard?id=${encodeURIComponent(result.userId)}`
             );
           }, 800);
         } else {
@@ -55,14 +49,6 @@ const Login: React.FC = () => {
     },
     [Email, Password, router]
   );
-
-  const handleVerifyFingerprint = async () => {
-    if (!isWebAuthnSupported()) {
-      toast.error("WebAuthn is not supported in this browser.");
-      return;
-    }
-    toast.info("Fingerprint login feature coming soon!");
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-cyan-50 via-white to-cyan-100">
@@ -79,7 +65,7 @@ const Login: React.FC = () => {
             className="mb-3 rounded-md"
           />
           <p className="text-xs text-gray-500 font-medium">
-            Time & Attendance Tracking
+            Room Reservation
           </p>
         </div>
 
@@ -119,18 +105,9 @@ const Login: React.FC = () => {
           </button>
         </form>
 
-        {/* Fingerprint Login */}
-        <button
-          type="button"
-          onClick={handleVerifyFingerprint}
-          className="mt-3 w-full py-3 border border-cyan-400 text-cyan-600 font-medium text-sm rounded-lg hover:bg-cyan-50 transition-all duration-300 flex items-center justify-center gap-2"
-        >
-          <LuFingerprint size={16} /> Sign In with Fingerprint
-        </button>
-
         {/* Footer */}
         <p className="mt-4 text-[10px] text-center text-gray-400 font-medium">
-          Acculog © {new Date().getFullYear()} | Attendance & Time Tracking System
+          Shifts © {new Date().getFullYear()} | Room Reservation
         </p>
       </div>
     </div>
