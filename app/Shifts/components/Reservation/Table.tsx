@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { MdCancel, MdCheck, MdCloudDownload } from "react-icons/md";
-import { deleteOldCancelledBookings } from "@/lib/deleteOldCancelled"; // ✅ tama ang import
 
 interface Booking {
   BookNumber: string;
@@ -76,23 +75,24 @@ const Table: React.FC<TableProps> = ({
     saveAs(new Blob([buf]), `RoomBookings_${new Date().toISOString()}.xlsx`);
   };
 
+  // Sort bookings by latest date_created
   const sortedBookings = [...bookings].sort(
     (a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
   );
 
-  // ✅ Delete cancelled bookings older than 1 day using lib
+  // ✅ Auto delete cancelled bookings older than 1 day using lib
   useEffect(() => {
     const deleteCancelled = async () => {
       try {
-        const deletedCount = await deleteOldCancelledBookings();
-        if (deletedCount > 0) refreshBookings();
-        console.log(`Deleted ${deletedCount} cancelled bookings older than 1 day.`);
+        const res = await fetch("/api/Shifts/DeleteOldCancelled", { method: "DELETE" });
+        if (res.ok) refreshBookings();
       } catch (err) {
         console.error("Failed to delete old cancelled bookings", err);
       }
     };
     deleteCancelled();
-  }, []); // run once on mount
+  }, []);
+
 
   return (
     <div className="w-full">
