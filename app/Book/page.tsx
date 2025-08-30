@@ -102,34 +102,9 @@ const Book: React.FC = () => {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to create booking");
 
-      // STEP 2: Send email via Mailjet
-      const emailRes = await fetch("/api/Shifts/SendBookingEmail", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          fullname,
-          bookNumber,
-          startDate,
-          endDate,
-          attendance,
-          capacity,
-          purpose: finalPurpose,
-          location,
-        }),
-      });
+      // STEP 2: Show success toast and modal
+      toast.success(`Booking ${bookNumber} created successfully!`);
 
-      const emailResult = await emailRes.json();
-
-      if (emailResult.success) {
-        toast.success(`Booking ${bookNumber} created & email sent successfully!`);
-      } else {
-        toast.warning(`Booking ${bookNumber} created, but failed to send email.`);
-        console.warn("Email send failed:", emailResult.message || emailResult);
-      }
-
-
-      // Show modal
       setSubmittedBookNumber(bookNumber);
       setShowModal(true);
       setShowFormModal(false);
@@ -139,6 +114,7 @@ const Book: React.FC = () => {
       setAttendance("1-5"); setCapacity(""); setPurpose(""); setOtherPurpose(""); setLocation("");
       generateBookNumber();
       fetchApprovedBookings();
+
     } catch (err) {
       console.error(err);
       toast.error("Unexpected error occurred.");
@@ -146,7 +122,6 @@ const Book: React.FC = () => {
       setLoading(false);
     }
   };
-
 
   return (
     <div
