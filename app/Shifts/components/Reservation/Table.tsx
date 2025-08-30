@@ -3,6 +3,7 @@
 import React from "react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { MdCancel, MdCheck, MdCloudDownload } from "react-icons/md";
 
 interface Booking {
   BookNumber: string;
@@ -14,6 +15,7 @@ interface Booking {
   Capacity: string;
   Purpose: string;
   Status: string;
+  date_created: string; // ✅ dagdag para sorting
 }
 
 interface TableProps {
@@ -45,6 +47,7 @@ const Table: React.FC<TableProps> = ({
       { header: "Capacity", key: "Capacity", width: 12 },
       { header: "Purpose", key: "Purpose", width: 25 },
       { header: "Status", key: "Status", width: 12 },
+      { header: "Date Created", key: "date_created", width: 20 }, // ✅ dagdag
     ];
 
     bookings.forEach((b) => {
@@ -58,6 +61,7 @@ const Table: React.FC<TableProps> = ({
         Capacity: b.Capacity,
         Purpose: b.Purpose,
         Status: b.Status,
+        date_created: new Date(b.date_created).toLocaleString(),
       });
     });
 
@@ -69,74 +73,93 @@ const Table: React.FC<TableProps> = ({
     saveAs(new Blob([buf]), `RoomBookings_${new Date().toISOString()}.xlsx`);
   };
 
+  // ✅ sort bookings by latest date_created
+  const sortedBookings = [...bookings].sort(
+    (a, b) =>
+      new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
+  );
+
   return (
     <div className="w-full">
       {/* Export Button */}
       <div className="flex justify-end mb-2">
         <button
           onClick={exportToExcel}
-          className="px-4 py-2 bg-green-500 hover:bg-green-400 text-white rounded text-xs sm:text-sm"
+          className="px-4 py-2 bg-green-500 hover:bg-green-400 text-white rounded text-xs sm:text-xs flex items-center gap-1"
         >
-          Export to Excel
+          <MdCloudDownload /> Download as Excel
         </button>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border rounded-lg">
-        <table className="w-full border-collapse text-xs sm:text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border p-2 sm:p-3 text-left">Action</th>
-              <th className="border p-2 sm:p-3 text-left">Book Number</th>
-              <th className="border p-2 sm:p-3 text-left">Email</th>
-              <th className="border p-2 sm:p-3 text-left">Fullname</th>
-              <th className="border p-2 sm:p-3 text-left">Start Date</th>
-              <th className="border p-2 sm:p-3 text-left">End Date</th>
-              <th className="border p-2 sm:p-3 text-left">Attendance</th>
-              <th className="border p-2 sm:p-3 text-left">Capacity</th>
-              <th className="border p-2 sm:p-3 text-left">Purpose</th>
-              <th className="border p-2 sm:p-3 text-left">Status</th>
+      <div className="overflow-x-auto w-full rounded-lg shadow-md border border-gray-200">
+        <table className="w-full table-auto border-collapse">
+          <thead className="bg-gradient-to-r from-cyan-500 to-indigo-500 text-white sticky top-0 z-10 shadow">
+            <tr className="text-xs text-left whitespace-nowrap">
+              <th className="px-6 py-4 font-semibold">Action</th>
+              <th className="px-6 py-4 font-semibold">Book Number</th>
+              <th className="px-6 py-4 font-semibold">Email</th>
+              <th className="px-6 py-4 font-semibold">Fullname</th>
+              <th className="px-6 py-4 font-semibold">Start Date</th>
+              <th className="px-6 py-4 font-semibold">End Date</th>
+              <th className="px-6 py-4 font-semibold">Attendance</th>
+              <th className="px-6 py-4 font-semibold">Capacity</th>
+              <th className="px-6 py-4 font-semibold">Purpose</th>
+              <th className="px-6 py-4 font-semibold">Status</th>
+              <th className="px-6 py-4 font-semibold">Date Created</th>
             </tr>
           </thead>
           <tbody>
-            {bookings.length === 0 && !loading ? (
+            {sortedBookings.length === 0 && !loading ? (
               <tr>
-                <td colSpan={10} className="text-center p-4 text-gray-400">
+                <td colSpan={11} className="text-center p-4 text-gray-400">
                   No bookings found.
                 </td>
               </tr>
             ) : (
-              bookings.map((b, idx) => (
-                <tr key={`${b.BookNumber}-${idx}`} className="hover:bg-gray-50">
-                  <td className="border p-2 sm:p-3 flex flex-col sm:flex-row gap-1 sm:gap-2">
+              sortedBookings.map((b, idx) => (
+                <tr key={`${b.BookNumber}-${idx}`} className="hover:bg-gray-50 whitespace-nowrap">
+                  <td className="px-6 py-4 text-xs p-2 sm:p-3 flex flex-col sm:flex-row gap-1 sm:gap-2">
                     {b.Status === "Pending" && (
                       <>
                         <button
                           onClick={() => approveBooking(b.BookNumber)}
-                          className="px-2 py-1 bg-blue-500 text-white rounded text-xs sm:text-sm w-full sm:w-auto"
+                          className="px-2 py-1 bg-blue-500 text-white rounded text-xs sm:text-xs w-full sm:w-auto flex items-center gap-1"
                         >
-                          Approve
+                          <MdCheck /> Approve
                         </button>
                         <button
                           onClick={() =>
                             setCancelModal({ open: true, bookNumber: b.BookNumber })
                           }
-                          className="px-2 py-1 bg-red-500 text-white rounded text-xs sm:text-sm w-full sm:w-auto"
+                          className="px-2 py-1 bg-red-500 text-white rounded text-xs sm:text-xs w-full sm:w-auto flex items-center gap-1"
                         >
-                          Cancel
+                          <MdCancel /> Cancel
                         </button>
                       </>
                     )}
+
+                    {b.Status === "Approved" && (
+                      <button
+                        onClick={() =>
+                          setCancelModal({ open: true, bookNumber: b.BookNumber })
+                        }
+                        className="px-2 py-1 bg-red-500 text-white rounded text-xs sm:text-xs w-full sm:w-auto flex items-center gap-1"
+                      >
+                        <MdCancel /> Cancel
+                      </button>
+                    )}
                   </td>
-                  <td className="border p-2 sm:p-3">{b.BookNumber}</td>
-                  <td className="border p-2 sm:p-3">{b.Email}</td>
-                  <td className="border p-2 sm:p-3">{b.Fullname}</td>
-                  <td className="border p-2 sm:p-3">{new Date(b.StartDate).toLocaleString()}</td>
-                  <td className="border p-2 sm:p-3">{new Date(b.EndDate).toLocaleString()}</td>
-                  <td className="border p-2 sm:p-3">{b.Attendance}</td>
-                  <td className="border p-2 sm:p-3">{b.Capacity}</td>
-                  <td className="border p-2 sm:p-3">{b.Purpose}</td>
-                  <td className="border p-2 sm:p-3">
+
+                  <td className="px-6 py-4 text-xs">{b.BookNumber}</td>
+                  <td className="px-6 py-4 text-xs">{b.Email}</td>
+                  <td className="px-6 py-4 text-xs">{b.Fullname}</td>
+                  <td className="px-6 py-4 text-xs">{new Date(b.StartDate).toLocaleString()}</td>
+                  <td className="px-6 py-4 text-xs">{new Date(b.EndDate).toLocaleString()}</td>
+                  <td className="px-6 py-4 text-xs">{b.Attendance}</td>
+                  <td className="px-6 py-4 text-xs">{b.Capacity}</td>
+                  <td className="px-6 py-4 text-xs">{b.Purpose}</td>
+                  <td className="px-6 py-4 text-xs">
                     <span
                       className={`px-2 py-1 rounded-full text-[10px] ${
                         statusColors[b.Status] || "bg-gray-100 text-gray-800"
@@ -144,6 +167,9 @@ const Table: React.FC<TableProps> = ({
                     >
                       {b.Status}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 text-xs">
+                    {new Date(b.date_created).toLocaleString()}
                   </td>
                 </tr>
               ))

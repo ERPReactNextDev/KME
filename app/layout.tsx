@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "Shifts - Room Reservation System",
   description: "Created in NextJs Developed By Fluxx Tech Solutions",
   icons: {
-    icon: "/fluxx.png",
+    icon: "/s.png",
   },
   manifest: "/manifest.json",
   // themeColor removed from metadata to avoid warning

@@ -36,11 +36,11 @@ const Footer: React.FC<FooterProps> = ({systemStatus = "operational" }) => {
         </button>
       )}
 
-      <footer className="bg-green-700 text-white py-4 w-full relative p-2 rounded-t-lg">
+      <footer className="bg-cyan-700 text-white py-4 w-full relative p-2 rounded-t-lg">
         <div className="container mx-auto text-center text-xs px-4">
           <p className="font-bold">
             &copy; {new Date().getFullYear()} Shifts
-            <span className="bg-green-900 ml-2 px-2 py-1 rounded-md text-[10px]">Version 1.0</span>
+            <span className="bg-cyan-900 ml-2 px-2 py-1 rounded-md text-[10px]">Version 1.0</span>
           </p>
 
           <div className="mt-2 text-[10px] italic flex justify-center items-center gap-2">

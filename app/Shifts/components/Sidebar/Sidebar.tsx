@@ -102,12 +102,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isDarkMode }) => {
             description: "See all reserved meeting rooms for your team or personal use",
             href: `/Shifts/Reservation/Room${userId ? `?id=${encodeURIComponent(userId)}` : ""}`,
           },
-
-          {
-            title: "Room Calendar",
-            description: "View the schedule of all reserved rooms",
-            href: `/Shifts/Reservation/Calendar${userId ? `?id=${encodeURIComponent(userId)}` : ""}`,
-          },
         ],
       },
     ];
@@ -140,12 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isDarkMode }) => {
         {/* Logo */}
         <div className="flex items-center justify-between p-5">
           <div className="flex items-center">
-            <img src="/fluxx.png" alt="Logo" className="h-8 mr-2 rounded-full" />
-            <Link href={`/Acculog/Attendance/Dashboard${userId ? `?id=${encodeURIComponent(userId)}` : ''}`}>
-              <h1 className={`text-md font-bold transition-opacity ${collapsed ? "opacity-0" : "opacity-100"}`}>
-                Shifts
-              </h1>
-            </Link>
+            <img src="/shifts.png" alt="Logo" className="w-full mr-2 rounded-full" />
           </div>
         </div>
 

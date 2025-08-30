@@ -83,7 +83,7 @@ const SidebarUserInfo: React.FC<SidebarUserInfoProps> = ({
       <div className="flex items-center gap-3 z-10">
         <div className="relative w-12 h-12">
           <img
-            src={userDetails.profilePicture || "/fluxx.png"}
+            src={userDetails.profilePicture || "/s.png"}
             alt="Avatar"
             className="w-12 h-12 object-cover rounded-full"
           />
@@ -108,7 +108,7 @@ const SidebarUserInfo: React.FC<SidebarUserInfoProps> = ({
         title="Logout"
         className="ml-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-red-900 transition z-10"
       >
-        <GrPowerShutdown size={20} className="text-green-700" />
+        <GrPowerShutdown size={20} className="text-cyan-600" />
       </button>
     </div>
   );

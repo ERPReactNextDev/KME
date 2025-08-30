@@ -20,10 +20,11 @@ export default async function addBooking(
       Attendance,
       Capacity,
       Purpose,
+      Location, // added location
     } = req.body;
 
     // Basic validation
-    if (!BookNumber || !Email || !Fullname || !StartDate || !EndDate || !Attendance || !Capacity || !Purpose) {
+    if (!BookNumber || !Email || !Fullname || !StartDate || !EndDate || !Attendance || !Capacity || !Purpose || !Location) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -31,7 +32,7 @@ export default async function addBooking(
     const bookingsCollection = db.collection("RoomBookings");
 
     const newBooking = {
-      BookNumber, // Use the BookNumber from frontend
+      BookNumber,
       Email,
       Fullname,
       StartDate: new Date(StartDate),
@@ -39,6 +40,7 @@ export default async function addBooking(
       Attendance,
       Capacity,
       Purpose,
+      Location, // stored location
       Status: "Pending",
       date_created: new Date(),
     };

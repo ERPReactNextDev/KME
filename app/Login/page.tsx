@@ -35,7 +35,7 @@ const Login: React.FC = () => {
           toast.success("Login successful!");
           setTimeout(() => {
             router.push(
-              `/Shifts/Reservation/Dashboard?id=${encodeURIComponent(result.userId)}`
+              `/Shifts/Reservation/Room?id=${encodeURIComponent(result.userId)}`
             );
           }, 800);
         } else {
@@ -58,14 +58,14 @@ const Login: React.FC = () => {
         {/* Logo */}
         <div className="flex flex-col items-center mb-6 text-center">
           <Image
-            src="/acculog.png"
-            alt="Acculog Logo"
+            src="/shifts.png"
+            alt="Shifts Logo"
             width={220}
             height={60}
             className="mb-3 rounded-md"
           />
           <p className="text-xs text-gray-500 font-medium">
-            Room Reservation
+            Login Your Admin Credentials
           </p>
         </div>
 

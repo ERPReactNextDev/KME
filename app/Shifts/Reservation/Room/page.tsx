@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import ParentLayout from "../../components/Layouts/ParentLayout";
 import SessionChecker from "../../components/Session/SessionChecker";
 import Table from "../../components/Reservation/Table";
+import SearchDateRange from "../../components/Reservation/Control/SearchDateRange";
+import CancelModal from "../../components/Reservation/Modal/CancelBook";
+import ViewFullCalendar from "../../components/Reservation/FullCalendar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -17,6 +20,7 @@ interface Booking {
   Capacity: string;
   Purpose: string;
   Status: string;
+  date_created: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -35,6 +39,16 @@ const Room: React.FC = () => {
     bookNumber: "",
   });
 
+  // filters
+  const [capacityFilter, setCapacityFilter] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+
+  // calendar state
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<"month" | "day">("month");
+
+  // fetch bookings
   const fetchBookings = async () => {
     setLoading(true);
     try {
@@ -43,8 +57,8 @@ const Room: React.FC = () => {
       if (res.ok) {
         setBookings(data.bookings || []);
       } else {
-        setBookings([]);
         toast.error(data.error || "Failed to fetch bookings.");
+        setBookings([]);
       }
     } catch (error) {
       console.error(error);
@@ -59,6 +73,7 @@ const Room: React.FC = () => {
     fetchBookings();
   }, []);
 
+  // approve booking
   const approveBooking = async (bookNumber: string) => {
     setLoading(true);
     try {
@@ -87,6 +102,7 @@ const Room: React.FC = () => {
     }
   };
 
+  // cancel booking
   const cancelBooking = async (bookNumber: string) => {
     setLoading(true);
     try {
@@ -116,77 +132,102 @@ const Room: React.FC = () => {
     }
   };
 
+  // filters
   const filteredBookings = bookings.filter((b) => {
     const q = searchQuery.toLowerCase();
-    return (
+    const matchesSearch =
       b.BookNumber.toLowerCase().includes(q) ||
       b.Email.toLowerCase().includes(q) ||
-      b.Fullname.toLowerCase().includes(q)
-    );
+      b.Fullname.toLowerCase().includes(q);
+
+    const matchesCapacity = capacityFilter ? b.Capacity === capacityFilter : true;
+
+    const bookingStart = new Date(b.StartDate).setHours(0, 0, 0, 0);
+    const bookingEnd = new Date(b.EndDate).setHours(0, 0, 0, 0);
+
+    const filterStart = startDateFilter
+      ? new Date(startDateFilter).setHours(0, 0, 0, 0)
+      : null;
+    const filterEnd = endDateFilter
+      ? new Date(endDateFilter).setHours(23, 59, 59, 999)
+      : null;
+
+    const matchesDate =
+      (!filterStart || bookingStart >= filterStart) &&
+      (!filterEnd || bookingEnd <= filterEnd);
+
+    return matchesSearch && matchesCapacity && matchesDate;
   });
+
+  // approved bookings only
+  const approvedBookings = bookings.filter((b) => b.Status === "Approved");
 
   return (
     <SessionChecker>
       <ParentLayout>
         <div className="container mx-auto p-4 text-gray-900">
-          <h2 className="text-lg font-bold mb-4 text-center sm:text-left">Room Bookings</h2>
+          <div className="grid grid-cols-1 md:grid-cols-1">
+            <h2 className="text-lg font-bold mb-4 text-center sm:text-left">
+              Room Bookings
+            </h2>
 
-          {/* Search */}
-          <div className="w-full max-w-md mb-4 mx-auto sm:mx-0">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Book Number, Email or Fullname"
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs sm:text-sm"
+            {/* Filters */}
+            <SearchDateRange
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              capacityFilter={capacityFilter}
+              setCapacityFilter={setCapacityFilter}
+              startDateFilter={startDateFilter}
+              setStartDateFilter={setStartDateFilter}
+              endDateFilter={endDateFilter}
+              setEndDateFilter={setEndDateFilter}
+              clearFilters={() => {
+                setSearchQuery("");
+                setCapacityFilter("");
+                setStartDateFilter("");
+                setEndDateFilter("");
+              }}
             />
-          </div>
 
-          {/* Loading */}
-          {loading && (
-            <div className="text-center text-gray-500 mb-2 text-xs sm:text-sm">
-              Loading...
-            </div>
-          )}
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <Table
-              bookings={filteredBookings}
-              loading={loading}
-              approveBooking={approveBooking}
-              setCancelModal={setCancelModal}
+            {/* Calendar */}
+            <ViewFullCalendar
+              viewMode={viewMode}
+              currentDate={currentDate}
+              setCurrentDate={setCurrentDate}
+              setViewMode={setViewMode}
               statusColors={statusColors}
+              approvedBookings={approvedBookings}
             />
-          </div>
 
-          {/* Cancel Modal */}
-          {cancelModal.open && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-              <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-xs sm:max-w-md text-center">
-                <h3 className="font-bold text-gray-700 mb-4 text-sm sm:text-base">Cancel Booking</h3>
-                <p className="mb-4 text-xs sm:text-sm">
-                  Are you sure you want to cancel booking{" "}
-                  <span className="font-semibold">{cancelModal.bookNumber}</span>?
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4">
-                  <button
-                    onClick={() => cancelBooking(cancelModal.bookNumber)}
-                    className="px-4 py-2 bg-red-500 text-white rounded text-xs sm:text-sm w-full sm:w-auto"
-                  >
-                    Yes, Cancel
-                  </button>
-                  <button
-                    onClick={() => setCancelModal({ open: false, bookNumber: "" })}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded text-xs sm:text-sm w-full sm:w-auto"
-                  >
-                    No
-                  </button>
-                </div>
+
+            {/* Loading */}
+            {loading && (
+              <div className="text-center text-gray-500 mb-2 text-xs sm:text-sm">
+                Loading...
               </div>
-            </div>
-          )}
+            )}
 
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <Table
+                bookings={filteredBookings}
+                loading={loading}
+                approveBooking={approveBooking}
+                setCancelModal={setCancelModal}
+                statusColors={statusColors}
+              />
+            </div>
+
+            {/* Cancel Modal */}
+            {cancelModal.open && (
+              <CancelModal
+                bookNumber={cancelModal.bookNumber}
+                onConfirm={() => cancelBooking(cancelModal.bookNumber)}
+                onClose={() => setCancelModal({ open: false, bookNumber: "" })}
+              />
+            )}
+
+          </div>
           <ToastContainer className="text-xs sm:text-sm" autoClose={1000} />
         </div>
       </ParentLayout>
