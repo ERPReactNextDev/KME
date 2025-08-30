@@ -42,12 +42,9 @@ const Calendar: React.FC<CalendarProps> = ({ approvedBookings, currentDate, setC
 
   const handleCardClick = (booking: Booking) => setSelectedBooking(booking);
 
-  /** Format time as HH:MM */
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
-    const hours = d.getHours().toString().padStart(2, "0");
-    const minutes = d.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
+    return `${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
   };
 
   /** Day view with stacked bookings */
@@ -86,6 +83,7 @@ const Calendar: React.FC<CalendarProps> = ({ approvedBookings, currentDate, setC
       const hour12 = hour % 12 === 0 ? 12 : hour % 12;
       return `${hour12}${suffix}`;
     };
+
     return (
       <div className="w-full flex flex-col border border-gray-200 rounded-lg overflow-auto">
         <div className="p-2 border-b border-gray-300 font-bold text-gray-700 flex justify-between items-center">
@@ -98,7 +96,7 @@ const Calendar: React.FC<CalendarProps> = ({ approvedBookings, currentDate, setC
         </div>
         {hours.map((hour) => (
           <div key={hour} className="relative h-16 border-b border-gray-100 flex items-start w-full">
-            <span className="text-xs text-gray-700 font-semibold w-16 pl-2 mt-2">{formatHour12(hour)}</span>
+            <span className="text-xs text-gray-700 font-semibold w-12 sm:w-16 pl-2 mt-2">{formatHour12(hour)}</span>
             <div className="flex-1 relative w-full">
               {columns.map((col, colIndex) =>
                 col.map((b) => {
@@ -122,8 +120,8 @@ const Calendar: React.FC<CalendarProps> = ({ approvedBookings, currentDate, setC
                       }}
                       onClick={() => handleCardClick(b)}
                     >
-                      <p className="font-semibold text-gray-700">{b.Fullname}</p>
-                      <p className="text-[10px] text-gray-500">
+                      <p className="font-semibold text-gray-700 truncate">{b.Fullname}</p>
+                      <p className="text-[10px] text-gray-500 truncate">
                         {b.Capacity} | {formatTime(b.StartDate)} - {formatTime(b.EndDate)}
                       </p>
                     </div>
@@ -144,7 +142,6 @@ const Calendar: React.FC<CalendarProps> = ({ approvedBookings, currentDate, setC
 
     for (let i = 1; i <= numDays; i++) {
       const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
-
       const dayBookings = filteredBookings.filter((b) => {
         const start = new Date(b.StartDate);
         const end = new Date(b.EndDate);
@@ -169,14 +166,14 @@ const Calendar: React.FC<CalendarProps> = ({ approvedBookings, currentDate, setC
           {dayBookings.map((b) => (
             <div
               key={b.BookNumber}
-              className="bg-cyan-50 border-l-4 border-cyan-400 rounded px-2 py-1 text-xs shadow-sm hover:bg-cyan-100 transition-colors cursor-pointer"
+              className="bg-cyan-50 border-l-4 border-cyan-400 rounded px-2 py-1 text-[10px] sm:text-xs shadow-sm hover:bg-cyan-100 transition-colors cursor-pointer truncate"
               onClick={(e) => {
-                e.stopPropagation(); // Prevent switching view when clicking card
+                e.stopPropagation();
                 handleCardClick(b);
               }}
             >
-              <p className="font-semibold text-gray-700">{b.Fullname}</p>
-              <p className="text-[10px] text-gray-500">
+              <p className="font-semibold text-gray-700 truncate">{b.Fullname}</p>
+              <p className="text-[10px] text-gray-500 truncate">
                 {b.Capacity} | {formatTime(b.StartDate)} - {formatTime(b.EndDate)}
               </p>
             </div>
@@ -189,7 +186,7 @@ const Calendar: React.FC<CalendarProps> = ({ approvedBookings, currentDate, setC
   };
 
   return (
-    <div className="flex-1 border border-gray-200 rounded-lg p-4 bg-white min-h-[500px] overflow-auto">
+    <div className="flex-1 border border-gray-200 rounded-lg p-2 sm:p-4 bg-white min-h-[500px] overflow-auto">
       {/* Controls */}
       <Filter
         filterCapacity={filterCapacity}
@@ -203,9 +200,9 @@ const Calendar: React.FC<CalendarProps> = ({ approvedBookings, currentDate, setC
 
       {/* Calendar Grid */}
       {viewMode === "day" ? (
-        <div className="w-full">{renderDayView()}</div>
+        <div className="w-full overflow-x-auto">{renderDayView()}</div>
       ) : (
-        <div className="grid grid-cols-7 md:grid-cols-7 gap-2">{renderDays()}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-7 gap-2 overflow-x-auto">{renderDays()}</div>
       )}
 
       {/* Booking Modal */}
