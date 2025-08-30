@@ -38,7 +38,7 @@ const Filter: React.FC<FilterProps> = ({
           <option value="Competence">Competence</option>
           <option value="Discipline">Discipline</option>
           <option value="Teamwork">Teamwork</option>
-          <option value="Meeting Room">Meeting Room</option>
+          <option value="Room 211 - Meeting Room">Room 211 - Meeting Room</option>
         </select>
 
         <select

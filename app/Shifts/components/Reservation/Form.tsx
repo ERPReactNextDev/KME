@@ -48,7 +48,7 @@ const Form: React.FC<FormProps> = ({
   const todayISOString = new Date().toISOString().slice(0,16);
 
   useEffect(() => {
-    if (location === "JNL Building") setRoomOptions(["Meeting Room"]);
+    if (location === "JNL Building") setRoomOptions(["Room 211 - Meeting Room"]);
     else if (location === "Primex Building")
       setRoomOptions(["Integrity", "Competence", "Discipline", "Teamwork"]);
     else setRoomOptions([]);
