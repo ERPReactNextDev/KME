@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { serialize } from "cookie";
 import { connectToDatabase } from "@/lib/MongoDB";
 import { validateUser } from "@/lib/MongoDB"; // for password login
-import base64url from "base64url";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -25,9 +24,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Invalid credentials." });
   }
 
+  // Function to check allowed roles/departments
+  const isAllowed = (role: string, department: string) => {
+    if (role === "Super Admin" && department === "IT") return true;
+    if (role === "Admin" && department === "IT") return true;
+    if (role === "Manager" && department === "Admin") return true;
+    return false;
+  };
+
   // --- WebAuthn (Fingerprint) Login ---
   if (credentialId && !Password) {
-    // This assumes you're storing WebAuthn credential ID under user.credentials
     const storedCredId = user?.credentials?.[0]?.id;
 
     if (!storedCredId) {
@@ -38,7 +44,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: "Invalid fingerprint credential." });
     }
 
-    // Fingerprint (WebAuthn) is valid, set cookie
+    if (!isAllowed(user.Role, user.Department)) {
+      return res.status(403).json({ message: "Access denied. Unauthorized role/department." });
+    }
+
     const userId = user._id.toString();
     res.setHeader(
       "Set-Cookie",
@@ -66,6 +75,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!result.success || !result.user) {
     return res.status(401).json({ message: "Invalid credentials." });
+  }
+
+  if (!isAllowed(result.user.Role, result.user.Department)) {
+    return res.status(403).json({ message: "Access denied. Unauthorized role/department." });
   }
 
   const userId = result.user._id.toString();

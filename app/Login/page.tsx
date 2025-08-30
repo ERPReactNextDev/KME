@@ -4,7 +4,7 @@ import React, { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ToastContainer, toast } from "react-toastify";
-import { FiMail, FiLock } from "react-icons/fi";
+import { FiMail, FiLock, FiShield } from "react-icons/fi";
 import "react-toastify/dist/ReactToastify.css";
 
 const Login: React.FC = () => {
@@ -51,47 +51,44 @@ const Login: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-cyan-50 via-white to-cyan-100">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-black to-gray-800">
       <ToastContainer className="text-xs" />
 
-      <div className="relative z-10 w-full max-w-md p-8 bg-white shadow-lg rounded-2xl border border-gray-200">
-        {/* Logo */}
+      {/* Glass Card */}
+      <div className="relative z-10 w-full max-w-md p-8 bg-white/10 backdrop-blur-xl shadow-2xl rounded-2xl border border-gray-700">
+        {/* Security Icon */}
         <div className="flex flex-col items-center mb-6 text-center">
-          <Image
-            src="/shifts.png"
-            alt="Shifts Logo"
-            width={220}
-            height={60}
-            className="mb-3 rounded-md"
-          />
-          <p className="text-xs text-gray-500 font-medium">
-            Login Your Admin Credentials
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-cyan-600 shadow-lg mb-4">
+            <FiShield className="text-white text-3xl" />
+          </div>
+          <p className="text-sm text-gray-300 font-medium tracking-wide">
+            Secure Admin Login
           </p>
         </div>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200">
-            <FiMail className="text-cyan-600" />
+          <div className="flex items-center gap-2 bg-gray-900/60 rounded-lg px-3 py-2 border border-gray-600 shadow-sm">
+            <FiMail className="text-cyan-400" />
             <input
               type="email"
               placeholder="Email"
               value={Email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 bg-transparent outline-none text-sm text-gray-800"
+              className="flex-1 bg-transparent outline-none text-sm text-gray-100 placeholder-gray-400"
             />
           </div>
 
           {/* Password */}
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200">
-            <FiLock className="text-cyan-600" />
+          <div className="flex items-center gap-2 bg-gray-900/60 rounded-lg px-3 py-2 border border-gray-600 shadow-sm">
+            <FiLock className="text-cyan-400" />
             <input
               type="password"
               placeholder="Password"
               value={Password}
               onChange={(e) => setPassword(e.target.value)}
-              className="flex-1 bg-transparent outline-none text-sm text-gray-800"
+              className="flex-1 bg-transparent outline-none text-sm text-gray-100 placeholder-gray-400"
             />
           </div>
 
@@ -99,15 +96,15 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold text-sm rounded-lg transition-all duration-300 shadow-md hover:scale-[1.02] disabled:opacity-60"
+            className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm rounded-lg transition-all duration-300 shadow-lg hover:scale-[1.01] disabled:opacity-60"
           >
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? "Verifying..." : "Sign In Securely"}
           </button>
         </form>
 
         {/* Footer */}
-        <p className="mt-4 text-[10px] text-center text-gray-400 font-medium">
-          Shifts © {new Date().getFullYear()} | Room Reservation
+        <p className="mt-6 text-[11px] text-center text-gray-500 font-medium">
+          🔒 Shifts Security Portal © {new Date().getFullYear()}
         </p>
       </div>
     </div>
