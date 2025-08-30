@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { MdCancel, MdCheck, MdCloudDownload } from "react-icons/md";
+import { deleteOldCancelledBookings } from "@/lib/deleteOldCancelled"; // ✅ tama ang import
 
 interface Booking {
   BookNumber: string;
@@ -15,7 +16,7 @@ interface Booking {
   Capacity: string;
   Purpose: string;
   Status: string;
-  date_created: string; // ✅ dagdag para sorting
+  date_created: string;
 }
 
 interface TableProps {
@@ -24,6 +25,7 @@ interface TableProps {
   approveBooking: (bookNumber: string) => void;
   setCancelModal: (modal: { open: boolean; bookNumber: string }) => void;
   statusColors: Record<string, string>;
+  refreshBookings: () => void;
 }
 
 const Table: React.FC<TableProps> = ({
@@ -32,6 +34,7 @@ const Table: React.FC<TableProps> = ({
   approveBooking,
   setCancelModal,
   statusColors,
+  refreshBookings,
 }) => {
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
@@ -47,7 +50,7 @@ const Table: React.FC<TableProps> = ({
       { header: "Capacity", key: "Capacity", width: 12 },
       { header: "Purpose", key: "Purpose", width: 25 },
       { header: "Status", key: "Status", width: 12 },
-      { header: "Date Created", key: "date_created", width: 20 }, // ✅ dagdag
+      { header: "Date Created", key: "date_created", width: 20 },
     ];
 
     bookings.forEach((b) => {
@@ -73,11 +76,23 @@ const Table: React.FC<TableProps> = ({
     saveAs(new Blob([buf]), `RoomBookings_${new Date().toISOString()}.xlsx`);
   };
 
-  // ✅ sort bookings by latest date_created
   const sortedBookings = [...bookings].sort(
-    (a, b) =>
-      new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
+    (a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime()
   );
+
+  // ✅ Delete cancelled bookings older than 1 day using lib
+  useEffect(() => {
+    const deleteCancelled = async () => {
+      try {
+        const deletedCount = await deleteOldCancelledBookings();
+        if (deletedCount > 0) refreshBookings();
+        console.log(`Deleted ${deletedCount} cancelled bookings older than 1 day.`);
+      } catch (err) {
+        console.error("Failed to delete old cancelled bookings", err);
+      }
+    };
+    deleteCancelled();
+  }, []); // run once on mount
 
   return (
     <div className="w-full">
@@ -110,7 +125,13 @@ const Table: React.FC<TableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {sortedBookings.length === 0 && !loading ? (
+            {loading ? (
+              <tr>
+                <td colSpan={11} className="text-center p-4 text-gray-500">
+                  Loading...
+                </td>
+              </tr>
+            ) : sortedBookings.length === 0 ? (
               <tr>
                 <td colSpan={11} className="text-center p-4 text-gray-400">
                   No bookings found.
@@ -129,9 +150,7 @@ const Table: React.FC<TableProps> = ({
                           <MdCheck /> Approve
                         </button>
                         <button
-                          onClick={() =>
-                            setCancelModal({ open: true, bookNumber: b.BookNumber })
-                          }
+                          onClick={() => setCancelModal({ open: true, bookNumber: b.BookNumber })}
                           className="px-2 py-1 bg-red-500 text-white rounded text-xs sm:text-xs w-full sm:w-auto flex items-center gap-1"
                         >
                           <MdCancel /> Cancel
@@ -141,9 +160,7 @@ const Table: React.FC<TableProps> = ({
 
                     {b.Status === "Approved" && (
                       <button
-                        onClick={() =>
-                          setCancelModal({ open: true, bookNumber: b.BookNumber })
-                        }
+                        onClick={() => setCancelModal({ open: true, bookNumber: b.BookNumber })}
                         className="px-2 py-1 bg-red-500 text-white rounded text-xs sm:text-xs w-full sm:w-auto flex items-center gap-1"
                       >
                         <MdCancel /> Cancel
@@ -160,17 +177,11 @@ const Table: React.FC<TableProps> = ({
                   <td className="px-6 py-4 text-xs">{b.Capacity}</td>
                   <td className="px-6 py-4 text-xs">{b.Purpose}</td>
                   <td className="px-6 py-4 text-xs">
-                    <span
-                      className={`px-2 py-1 rounded-full text-[10px] ${
-                        statusColors[b.Status] || "bg-gray-100 text-gray-800"
-                      }`}
-                    >
+                    <span className={`px-2 py-1 rounded-full text-[10px] ${statusColors[b.Status] || "bg-gray-100 text-gray-800"}`}>
                       {b.Status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs">
-                    {new Date(b.date_created).toLocaleString()}
-                  </td>
+                  <td className="px-6 py-4 text-xs">{new Date(b.date_created).toLocaleString()}</td>
                 </tr>
               ))
             )}

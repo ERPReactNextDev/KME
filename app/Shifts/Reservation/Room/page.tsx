@@ -132,6 +132,20 @@ const Room: React.FC = () => {
     }
   };
 
+  // Auto-delete Cancelled bookings older than 1 day
+  useEffect(() => {
+    const deleteOldCancelled = async () => {
+      try {
+        const res = await fetch("/api/Shifts/DeleteOldCancelled", { method: "DELETE" });
+        if (res.ok) fetchBookings(); // refresh bookings after deletion
+      } catch (err) {
+        console.error("Failed to delete old cancelled bookings", err);
+      }
+    };
+
+    deleteOldCancelled();
+  }, []);
+
   // filters
   const filteredBookings = bookings.filter((b) => {
     const q = searchQuery.toLowerCase();
@@ -159,7 +173,7 @@ const Room: React.FC = () => {
     return matchesSearch && matchesCapacity && matchesDate;
   });
 
-  // approved bookings only
+  // approved bookings only for calendar
   const approvedBookings = bookings.filter((b) => b.Status === "Approved");
 
   return (
@@ -199,22 +213,15 @@ const Room: React.FC = () => {
               approvedBookings={approvedBookings}
             />
 
-
-            {/* Loading */}
-            {loading && (
-              <div className="text-center text-gray-500 mb-2 text-xs sm:text-sm">
-                Loading...
-              </div>
-            )}
-
             {/* Table */}
             <div className="overflow-x-auto">
               <Table
-                bookings={filteredBookings}
+                bookings={filteredBookings} // ✅ filtered
                 loading={loading}
                 approveBooking={approveBooking}
                 setCancelModal={setCancelModal}
                 statusColors={statusColors}
+                refreshBookings={fetchBookings} // ✅ refreshBookings passed properly
               />
             </div>
 
@@ -226,7 +233,6 @@ const Room: React.FC = () => {
                 onClose={() => setCancelModal({ open: false, bookNumber: "" })}
               />
             )}
-
           </div>
           <ToastContainer className="text-xs sm:text-sm" autoClose={1000} />
         </div>
