@@ -10,6 +10,7 @@ interface Booking {
   StartDate: string;
   EndDate: string;
   Status: string;
+  Capacity: string; // ✅ make sure Capacity exists in Booking
 }
 
 interface ViewFullCalendarProps {
@@ -30,6 +31,7 @@ const ViewFullCalendar: React.FC<ViewFullCalendarProps> = ({
   approvedBookings,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [capacityFilter, setCapacityFilter] = useState<string>(""); // ✅ Capacity filter state
 
   // --- Month Helpers ---
   const { weeks, monthlyApproved, dailyApproved } = useMemo(() => {
@@ -68,7 +70,12 @@ const ViewFullCalendar: React.FC<ViewFullCalendarProps> = ({
       weeks.push(week);
     }
 
-    const monthlyApproved = approvedBookings.filter((b) => {
+    // ✅ Apply capacity filter
+    const filteredBookings = capacityFilter
+      ? approvedBookings.filter(b => b.Capacity === capacityFilter)
+      : approvedBookings;
+
+    const monthlyApproved = filteredBookings.filter((b) => {
       const start = new Date(b.StartDate);
       return (
         start.getMonth() === currentDate.getMonth() &&
@@ -76,13 +83,13 @@ const ViewFullCalendar: React.FC<ViewFullCalendarProps> = ({
       );
     });
 
-    const dailyApproved = approvedBookings.filter((b) => {
+    const dailyApproved = filteredBookings.filter((b) => {
       const start = new Date(b.StartDate);
       return start.toDateString() === currentDate.toDateString();
     });
 
     return { weeks, monthlyApproved, dailyApproved };
-  }, [currentDate, approvedBookings]);
+  }, [currentDate, approvedBookings, capacityFilter]);
 
   // --- Navigation ---
   const handlePrev = () => {
@@ -109,20 +116,34 @@ const ViewFullCalendar: React.FC<ViewFullCalendarProps> = ({
     }
   };
 
-  // --- Generate Hours 12AM - 11PM ---
   const hours = Array.from({ length: 24 }, (_, i) => i);
+
+  // --- Unique Capacities for dropdown
+  const capacities = Array.from(new Set(approvedBookings.map(b => b.Capacity))).sort();
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-      {/* Collapse Toggle Button */}
+      {/* Collapse Toggle + Capacity Filter */}
       <div className="flex justify-between items-center mb-2">
         <h2 className="font-semibold text-sm sm:text-base flex items-center gap-1"><FaCalendarAlt /> Calendar</h2>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
-        >
-          {isCollapsed ? "Show Calendar ▼" : "Hide Calendar ▲"}
-        </button>
+        <div className="flex items-center gap-2">
+          <select
+            value={capacityFilter}
+            onChange={(e) => setCapacityFilter(e.target.value)}
+            className="px-2 py-1 border rounded text-xs"
+          >
+            <option value="">All Capacities</option>
+            {capacities.map(cap => (
+              <option key={cap} value={cap}>{cap}</option>
+            ))}
+          </select>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="px-3 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+          >
+            {isCollapsed ? "Show Calendar ▼" : "Hide Calendar ▲"}
+          </button>
+        </div>
       </div>
 
       {!isCollapsed && (
@@ -137,16 +158,8 @@ const ViewFullCalendar: React.FC<ViewFullCalendarProps> = ({
             </button>
             <h3 className="font-semibold text-sm sm:text-base">
               {viewMode === "month"
-                ? currentDate.toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  })
-                : currentDate.toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                ? currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+                : currentDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
             </h3>
             <button
               onClick={handleNext}
@@ -160,17 +173,13 @@ const ViewFullCalendar: React.FC<ViewFullCalendarProps> = ({
           <div className="flex justify-center gap-2 mb-4">
             <button
               onClick={() => setViewMode("month")}
-              className={`px-3 py-1 rounded text-xs ${
-                viewMode === "month" ? "bg-blue-500 text-white" : "bg-gray-200"
-              }`}
+              className={`px-3 py-1 rounded text-xs ${viewMode === "month" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
             >
               Month View
             </button>
             <button
               onClick={() => setViewMode("day")}
-              className={`px-3 py-1 rounded text-xs ${
-                viewMode === "day" ? "bg-blue-500 text-white" : "bg-gray-200"
-              }`}
+              className={`px-3 py-1 rounded text-xs ${viewMode === "day" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
             >
               Day View
             </button>
@@ -214,7 +223,7 @@ const ViewFullCalendar: React.FC<ViewFullCalendarProps> = ({
                               key={b.BookNumber}
                               className="bg-blue-100 text-blue-800 rounded px-1 text-[10px] truncate"
                             >
-                              {b.Fullname}
+                              {b.Fullname} ({b.Capacity})
                             </div>
                           ))}
                         </div>
@@ -258,6 +267,7 @@ const ViewFullCalendar: React.FC<ViewFullCalendarProps> = ({
                             <div>
                               <p className="font-semibold">{b.Fullname}</p>
                               <p className="text-[10px]">{b.Purpose}</p>
+                              <p className="text-[10px] text-gray-500">Capacity: {b.Capacity}</p>
                             </div>
                             <span
                               className={`px-2 py-1 rounded text-[10px] ${
