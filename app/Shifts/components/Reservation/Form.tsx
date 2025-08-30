@@ -141,25 +141,22 @@ const Form: React.FC<FormProps> = ({
     let rooms: string[] = [];
 
     if (location === "JNL Building") {
+      // Always show Room 211 for JNL
       rooms = ["Room 211 - Meeting Room"];
     } else if (location === "Primex Building") {
-      switch (attendance) {
-        case "1-6":
-          rooms = ["Integrity", "Competence", "Discipline"];
-          break;
-        case "7-12":
-        case "13-18":
-        case "19+":
-          rooms = ["Teamwork", "Room 213 - Meeting Room"];
-          break;
-        default:
-          rooms = [];
+      // Show rooms based on attendance
+      if (attendance === "1-6") {
+        rooms = ["Integrity", "Competence", "Discipline"];
+      } else if (["7-12", "13-18", "19+"].includes(attendance)) {
+        rooms = ["Teamwork"];
       }
     }
 
     setRoomOptions(rooms);
-    setCapacity(""); // reset selected room
+    setCapacity(""); // Reset selected room on change
   }, [location, attendance]);
+
+
 
   const highlightClass = (step: number) => tutorialStep === step ? "ring-2 ring-cyan-500 p-2 rounded" : "";
 
@@ -325,6 +322,12 @@ const Form: React.FC<FormProps> = ({
           <MdSave /> {loading ? "Booking..." : "Reserve"}
         </button>
       </div>
+      <Link
+        href="/Shifts/MyBooking"
+        className="w-full py-2 mt-2 bg-gray-300 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all duration-300 text-xs text-center block flex items-center justify-center gap-1"
+      >
+        <MdVisibility /> View My Booking
+      </Link>
     </form>
   );
 };
