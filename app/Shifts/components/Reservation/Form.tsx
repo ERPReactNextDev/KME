@@ -45,7 +45,7 @@ const Form: React.FC<FormProps> = ({
   const [durationText, setDurationText] = useState<string>("");
   const [timeError, setTimeError] = useState<string>("");
 
-  const todayISOString = new Date().toISOString().slice(0,16);
+  const todayISOString = new Date().toISOString().slice(0, 16);
 
   useEffect(() => {
     if (location === "JNL Building") setRoomOptions(["Room 211 - Meeting Room"]);
@@ -61,10 +61,10 @@ const Form: React.FC<FormProps> = ({
   // Helper: skip to next non-Sunday date
   const skipSunday = (dateStr: string) => {
     let d = new Date(dateStr);
-    while(d.getDay() === 0) { // Sunday
+    while (d.getDay() === 0) { // Sunday
       d.setDate(d.getDate() + 1);
     }
-    return d.toISOString().slice(0,16);
+    return d.toISOString().slice(0, 16);
   };
 
   // Adjust startDate & endDate to skip Sundays automatically
@@ -131,6 +131,30 @@ const Form: React.FC<FormProps> = ({
     }
     await handleSubmit(e);
   };
+
+  useEffect(() => {
+    let rooms: string[] = [];
+
+    if (location === "JNL Building") {
+      rooms = ["Room 211 - Meeting Room"];
+    } else if (location === "Primex Building") {
+      switch (attendance) {
+        case "1-6":
+          rooms = ["Integrity", "Competence", "Discipline"];
+          break;
+        case "7-12":
+        case "13-18":
+        case "19+":
+          rooms = ["Teamwork", "Room 213 - Meeting Room"];
+          break;
+        default:
+          rooms = [];
+      }
+    }
+
+    setRoomOptions(rooms);
+    setCapacity(""); // reset selected room
+  }, [location, attendance]);
 
   return (
     <form className="space-y-3" onSubmit={onSubmit}>
@@ -203,7 +227,7 @@ const Form: React.FC<FormProps> = ({
       <div>
         <label className="block font-medium text-gray-700 mb-1">Number of Attendance</label>
         <div className="flex flex-wrap gap-3">
-          {["1-5", "6-10", "11-20", "21+"].map((num) => (
+          {["1-6", "7-12", "13-18", "19+"].map((num) => (
             <label key={num} className="flex items-center gap-1">
               <input
                 type="radio"
