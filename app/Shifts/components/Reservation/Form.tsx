@@ -27,6 +27,9 @@ interface FormProps {
   loading: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   bookNumber: string;
+  showTutorial: boolean;
+  tutorialStep: number;
+  setTutorialStep: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const Form: React.FC<FormProps> = ({
@@ -41,6 +44,7 @@ const Form: React.FC<FormProps> = ({
   location, setLocation,
   loading, handleSubmit,
   bookNumber,
+  showTutorial, tutorialStep, setTutorialStep
 }) => {
   const [roomOptions, setRoomOptions] = useState<string[]>([]);
   const [durationText, setDurationText] = useState<string>("");
@@ -157,15 +161,17 @@ const Form: React.FC<FormProps> = ({
     setCapacity(""); // reset selected room
   }, [location, attendance]);
 
+  const highlightClass = (step: number) => tutorialStep === step ? "ring-2 ring-cyan-500 p-2 rounded" : "";
+
   return (
-    <form className="space-y-3" onSubmit={onSubmit}>
+    <form className="space-y-3 relative" onSubmit={onSubmit}>
       {/* Book Number */}
       <div>
         <input
           type="text"
           value={bookNumber}
           readOnly
-          className="w-full px-2 py-6 text-center border border-dashed rounded-lg bg-cyan-50 text-gray-700 text-lg font-bold"
+          className={`w-full px-2 py-6 text-center border border-dashed rounded-lg bg-cyan-50 text-gray-700 text-lg font-bold ${highlightClass(0)}`}
         />
       </div>
 
@@ -177,7 +183,7 @@ const Form: React.FC<FormProps> = ({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="shifts@ecoshiftcorp.com"
-          className="w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs"
+          className={`w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs ${highlightClass(1)}`}
           required
         />
       </div>
@@ -190,7 +196,7 @@ const Form: React.FC<FormProps> = ({
           value={fullname}
           onChange={(e) => setFullname(e.target.value)}
           placeholder="John Doe"
-          className="w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs"
+          className={`w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs ${highlightClass(2)}`}
           required
         />
       </div>
@@ -204,7 +210,7 @@ const Form: React.FC<FormProps> = ({
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             min={todayISOString}
-            className="w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs"
+            className={`w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs ${highlightClass(3)}`}
             required
           />
         </div>
@@ -215,7 +221,7 @@ const Form: React.FC<FormProps> = ({
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             min={startDate || todayISOString}
-            className="w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs"
+            className={`w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs ${highlightClass(3)}`}
             required
           />
         </div>
@@ -225,7 +231,7 @@ const Form: React.FC<FormProps> = ({
       {durationText && !timeError && <p className="text-xs text-gray-600">{durationText}</p>}
 
       {/* Attendance */}
-      <div>
+      <div className={highlightClass(4)}>
         <label className="block font-medium text-gray-700 mb-1">Number of Attendance</label>
         <div className="flex flex-wrap gap-3">
           {["1-6", "7-12", "13-18", "19+"].map((num) => (
@@ -245,7 +251,7 @@ const Form: React.FC<FormProps> = ({
       </div>
 
       {/* Location */}
-      <div>
+      <div className={highlightClass(5)}>
         <label className="block font-medium text-gray-700 mb-1">Select Location</label>
         <select
           value={location}
@@ -260,7 +266,7 @@ const Form: React.FC<FormProps> = ({
       </div>
 
       {/* Room Capacity */}
-      <div>
+      <div className={highlightClass(4)}>
         <label className="block font-medium text-gray-700 mb-1">Room Capacity</label>
         <div className="flex flex-wrap gap-3">
           {roomOptions.map((cap) => (
@@ -280,7 +286,7 @@ const Form: React.FC<FormProps> = ({
       </div>
 
       {/* Purpose */}
-      <div>
+      <div className={highlightClass(5)}>
         <label className="block font-medium text-gray-700 mb-1">Purpose</label>
         <select
           value={purpose}
@@ -310,20 +316,15 @@ const Form: React.FC<FormProps> = ({
         )}
       </div>
 
-      <button
-        type="submit"
-        disabled={loading || !!timeError}
-        className="w-full py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-lg transition-all duration-300 shadow-md disabled:opacity-60 text-xs flex items-center justify-center gap-1"
-      >
-        <MdSave /> {loading ? "Booking..." : "Reserve"}
-      </button>
-
-      <Link
-        href="/Shifts/MyBooking"
-        className="w-full py-2 mt-2 bg-gray-300 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all duration-300 text-xs text-center block flex items-center justify-center gap-1"
-      >
-        <MdVisibility /> View My Book Number
-      </Link>
+      <div className={highlightClass(6)}>
+        <button
+          type="submit"
+          disabled={loading || !!timeError}
+          className={`w-full py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-lg transition-all duration-300 shadow-md disabled:opacity-60 text-xs flex items-center justify-center gap-1 ${highlightClass(6)}`}
+        >
+          <MdSave /> {loading ? "Booking..." : "Reserve"}
+        </button>
+      </div>
     </form>
   );
 };
