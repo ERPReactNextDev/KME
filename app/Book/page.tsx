@@ -80,6 +80,7 @@ const Book: React.FC = () => {
 
     setLoading(true);
     try {
+      // STEP 1: Create booking in DB
       const res = await fetch("/api/Shifts/AddBooking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,12 +101,8 @@ const Book: React.FC = () => {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to create booking");
 
-      setSubmittedBookNumber(bookNumber);
-      setShowModal(true);
-      setShowFormModal(false);
-      toast.success(`Booking ${bookNumber} created successfully!`);
-
-      await fetch("/api/Shifts/SendBookingEmail", {
+      // STEP 2: Send email via Mailjet
+      const emailRes = await fetch("/api/Shifts/SendBookingEmail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -121,8 +118,23 @@ const Book: React.FC = () => {
         }),
       });
 
+      const emailResult = await emailRes.json();
+
+      if (emailResult.success) {
+        toast.success(`Booking ${bookNumber} created & email sent successfully!`);
+      } else {
+        toast.warning(`Booking ${bookNumber} created, but failed to send email.`);
+        console.warn("Email send failed:", emailResult.message || emailResult);
+      }
+
+
+      // Show modal
+      setSubmittedBookNumber(bookNumber);
+      setShowModal(true);
+      setShowFormModal(false);
+
       // Reset form
-      setEmail(""); setFullname(""); setStartDate(""); setEndDate(""); 
+      setEmail(""); setFullname(""); setStartDate(""); setEndDate("");
       setAttendance("1-5"); setCapacity(""); setPurpose(""); setOtherPurpose(""); setLocation("");
       generateBookNumber();
       fetchApprovedBookings();
@@ -133,6 +145,7 @@ const Book: React.FC = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div
@@ -147,7 +160,7 @@ const Book: React.FC = () => {
           className="px-4 py-2 bg-gray-50 border text-black rounded-lg text-sm hover:bg-gray-100 transition flex item-center gap-1"
           onClick={() => setShowFormModal(true)}
         >
-          <FcPlus  size={20}/> Create Booking
+          <FcPlus size={20} /> Create Booking
         </button>
       </div>
 

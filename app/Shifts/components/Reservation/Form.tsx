@@ -45,6 +45,8 @@ const Form: React.FC<FormProps> = ({
   const [durationText, setDurationText] = useState<string>("");
   const [timeError, setTimeError] = useState<string>("");
 
+  const todayISOString = new Date().toISOString().slice(0,16);
+
   useEffect(() => {
     if (location === "JNL Building") setRoomOptions(["Meeting Room"]);
     else if (location === "Primex Building")
@@ -53,7 +55,32 @@ const Form: React.FC<FormProps> = ({
     setCapacity(""); // reset selected room
   }, [location]);
 
-  // Compute duration and validate whenever startDate or endDate changes
+  // Helper: check if date is Sunday
+  const isSunday = (dateStr: string) => new Date(dateStr).getDay() === 0;
+
+  // Helper: skip to next non-Sunday date
+  const skipSunday = (dateStr: string) => {
+    let d = new Date(dateStr);
+    while(d.getDay() === 0) { // Sunday
+      d.setDate(d.getDate() + 1);
+    }
+    return d.toISOString().slice(0,16);
+  };
+
+  // Adjust startDate & endDate to skip Sundays automatically
+  useEffect(() => {
+    if (startDate && isSunday(startDate)) {
+      setStartDate(skipSunday(startDate));
+    }
+  }, [startDate]);
+
+  useEffect(() => {
+    if (endDate && isSunday(endDate)) {
+      setEndDate(skipSunday(endDate));
+    }
+  }, [endDate]);
+
+  // Compute duration & validate
   useEffect(() => {
     if (!startDate || !endDate) {
       setDurationText("");
@@ -63,6 +90,13 @@ const Form: React.FC<FormProps> = ({
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    const now = new Date();
+
+    if (start < now) {
+      setTimeError("Start date/time cannot be in the past.");
+      setDurationText("");
+      return;
+    }
 
     if (start.getTime() === end.getTime()) {
       setTimeError("Start and End date/time cannot be the same.");
@@ -72,15 +106,22 @@ const Form: React.FC<FormProps> = ({
       setTimeError("End date/time cannot be before Start date/time.");
       setDurationText("");
       return;
-    } else {
-      setTimeError("");
-      const diffMs = end.getTime() - start.getTime();
-      const diffMinutes = Math.floor(diffMs / 60000);
-      const hours = Math.floor(diffMinutes / 60);
-      const minutes = diffMinutes % 60;
-      setDurationText(`Duration: ${hours > 0 ? `${hours} hr ` : ""}${minutes} min`);
     }
+
+    setTimeError("");
+    const diffMs = end.getTime() - start.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    setDurationText(`Duration: ${hours > 0 ? `${hours} hr ` : ""}${minutes} min`);
   }, [startDate, endDate]);
+
+  // Auto-adjust endDate if startDate changes
+  useEffect(() => {
+    if (startDate && (!endDate || new Date(endDate) < new Date(startDate))) {
+      setEndDate(startDate);
+    }
+  }, [startDate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +178,7 @@ const Form: React.FC<FormProps> = ({
             type="datetime-local"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
+            min={todayISOString}
             className="w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs"
             required
           />
@@ -147,12 +189,13 @@ const Form: React.FC<FormProps> = ({
             type="datetime-local"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
+            min={startDate || todayISOString}
             className="w-full px-2 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-xs"
             required
           />
         </div>
       </div>
-      {/* Duration / Error */}
+
       {timeError && <p className="text-xs text-red-500">{timeError}</p>}
       {durationText && !timeError && <p className="text-xs text-gray-600">{durationText}</p>}
 
