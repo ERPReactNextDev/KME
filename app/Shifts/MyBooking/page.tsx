@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { HiOutlineMail, HiOutlineUser, HiOutlineCalendar, HiOutlineUsers, HiOutlineClipboardList, HiOutlineBriefcase } from "react-icons/hi";
+import { HiOutlineMail, HiOutlineUser, HiOutlineCalendar, HiOutlineUsers, HiOutlineClipboardList, HiOutlineBriefcase, HiOutlineSearch, HiOutlineHome } from "react-icons/hi";
 
 interface Booking {
   BookNumber: string;
@@ -64,17 +64,17 @@ const MyBooking: React.FC = () => {
         />
         <button
           onClick={handleSearch}
-          className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-lg text-xs"
+          className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-lg text-xs flex items-center justify-center gap-1"
           disabled={loading}
         >
-          {loading ? "Searching..." : "Search"}
+          {loading ? "Searching..." : <><HiOutlineSearch /> Search</>}
         </button>
 
         <Link
           href="/Book"
-          className="px-4 py-2 bg-gray-300 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg text-xs flex items-center justify-center"
+          className="px-4 py-2 bg-gray-300 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg text-xs flex items-center justify-center gap-1"
         >
-          Back to Home
+          <HiOutlineHome /> Back to Home
         </Link>
       </div>
 
@@ -92,9 +92,8 @@ const MyBooking: React.FC = () => {
             <div className="flex justify-between items-center mb-2">
               <p className="font-semibold text-sm">Book Number: {booking.BookNumber}</p>
               <span
-                className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                  statusColors[booking.Status] || "bg-gray-100 text-gray-800"
-                }`}
+                className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColors[booking.Status] || "bg-gray-100 text-gray-800"
+                  }`}
               >
                 {booking.Status}
               </span>

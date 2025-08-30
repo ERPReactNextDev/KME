@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Link from "next/link";
+import { MdSave, MdVisibility } from "react-icons/md";
 
 interface FormProps {
   email: string;
@@ -312,16 +313,16 @@ const Form: React.FC<FormProps> = ({
       <button
         type="submit"
         disabled={loading || !!timeError}
-        className="w-full py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-lg transition-all duration-300 shadow-md disabled:opacity-60 text-xs"
+        className="w-full py-2 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-lg transition-all duration-300 shadow-md disabled:opacity-60 text-xs flex items-center justify-center gap-1"
       >
-        {loading ? "Booking..." : "Reserve"}
+        <MdSave /> {loading ? "Booking..." : "Reserve"}
       </button>
 
       <Link
         href="/Shifts/MyBooking"
-        className="w-full py-2 mt-2 bg-gray-300 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all duration-300 text-xs text-center block"
+        className="w-full py-2 mt-2 bg-gray-300 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all duration-300 text-xs text-center block flex items-center justify-center gap-1"
       >
-        View My Book Number
+        <MdVisibility /> View My Book Number
       </Link>
     </form>
   );

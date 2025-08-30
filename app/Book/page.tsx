@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Form from "../Shifts/components/Reservation/Form";
 import Calendar from "../Shifts/components/Reservation/Calendar";
 import { FcPlus } from 'react-icons/fc';
+import { MdClose } from "react-icons/md";
 
 interface Booking {
   BookNumber: string;
@@ -203,9 +204,9 @@ const Book: React.FC = () => {
             />
             <button
               onClick={() => setShowFormModal(false)}
-              className="mt-4 px-4 py-2 bg-gray-300 hover:bg-gray-200 rounded-lg text-xs font-semibold"
+              className="mt-4 px-4 py-2 bg-gray-300 hover:bg-gray-200 rounded-lg text-xs font-semibold flex items-center gap-1"
             >
-              Close
+              <MdClose /> Close
             </button>
           </div>
         </div>
@@ -233,9 +234,9 @@ const Book: React.FC = () => {
             </div>
             <button
               onClick={() => setShowModal(false)}
-              className="px-4 py-2 bg-gray-300 hover:bg-gray-200 rounded-lg text-xs font-semibold"
+              className="px-4 py-2 bg-gray-300 hover:bg-gray-200 rounded-lg text-xs font-semibold flex items-center gap-1"
             >
-              Close
+              <MdClose /> Close
             </button>
           </div>
         </div>
