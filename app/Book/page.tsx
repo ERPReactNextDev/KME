@@ -233,8 +233,8 @@ const Book: React.FC = () => {
 
       {/* TUTORIAL OVERLAY */}
       {showTutorial && (
-        <div className="absolute inset-0 bg-black/30 flex flex-col justify-center items-center p-4 z-[9999]">
-          <div className="bg-white p-4 rounded-lg max-w-xs text-center shadow-lg">
+        <div className="fixed inset-0 bg-black/30 flex justify-center items-center p-4 z-[9999] overflow-auto">
+          <div className="bg-white p-4 rounded-lg max-w-xs w-full max-h-[90vh] text-center shadow-lg overflow-auto">
             <p className="text-sm mb-4">{tutorialSteps[tutorialStep]}</p>
             <div className="flex justify-between">
               <button
@@ -246,14 +246,14 @@ const Book: React.FC = () => {
               </button>
               {tutorialStep === tutorialSteps.length - 1 ? (
                 <button
-                  className="px-4 py-3 bg-cyan-600 text-white rounded hover:bg-cyan-500 text-xs"
+                  className="px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-500 text-xs"
                   onClick={() => setShowTutorial(false)}
                 >
                   Finish
                 </button>
               ) : (
                 <button
-                  className="px-4 py-3 bg-cyan-600 text-white rounded hover:bg-cyan-500 text-xs"
+                  className="px-3 py-1 bg-cyan-600 text-white rounded hover:bg-cyan-500 text-xs"
                   onClick={() => setTutorialStep(tutorialStep + 1)}
                 >
                   Next
