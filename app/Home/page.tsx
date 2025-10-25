@@ -145,7 +145,7 @@ const Home: React.FC = () => {
         >
           <button
             onClick={handleStart}
-            className={`w-40 h-40 rounded-full text-white text-xl font-bold flex items-center justify-center shadow-lg bg-cover bg-center transition-transform duration-500 ${animateStart ? "scale-150" : "scale-100"
+            className={`w-40 h-40 rounded-full text-white bg-white text-xl font-bold flex items-center justify-center shadow-lg bg-cover bg-center transition-transform duration-500 ${animateStart ? "scale-150" : "scale-100"
               }`}
             style={{ backgroundImage: 'url("/KEME.png")' }}
           ></button>
