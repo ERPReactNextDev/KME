@@ -97,7 +97,14 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground flex flex-col items-center justify-start py-16 px-6">
+    <div className="relative min-h-screen flex flex-col items-center justify-start text-foreground py-16 px-6">
+      {/* Full page background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-5 -z-10"
+        style={{ backgroundImage: 'url("/disruptive.jpg")' }}
+      />
+
+      {/* Header */}
       <div className="w-full max-w-2xl text-center mb-10">
         <h1 className="text-4xl font-bold tracking-tight mb-2">
           Know My Employee
@@ -107,6 +114,7 @@ const Home: React.FC = () => {
         </p>
       </div>
 
+      {/* Search */}
       <div className="w-full max-w-lg">
         <Search
           setEmployees={setEmployees}
@@ -116,6 +124,7 @@ const Home: React.FC = () => {
         />
       </div>
 
+      {/* Spinner */}
       {loading && (
         <Card className="flex items-center justify-between mt-6 p-4 text-sm shadow-sm border-muted max-w-lg w-full">
           <div className="flex items-center gap-3">
@@ -126,11 +135,11 @@ const Home: React.FC = () => {
         </Card>
       )}
 
+      {/* Results */}
       {!loading && hasSearched && (
-        <Card className="mt-6 w-full max-w-lg shadow-md border-muted p-4">
+        <Card className="mt-6 w-full max-w-lg bg-white shadow-md border-muted p-4">
           {employees.length > 0 ? (
             <div className="flex flex-col gap-4">
-              {/* Group companies by name */}
               {Object.entries(
                 employees.reduce((acc, emp) => {
                   if (emp.isCompany) {
@@ -224,9 +233,9 @@ const Home: React.FC = () => {
         </Card>
       )}
 
-
+      {/* Fullscreen Progress Overlay */}
       {progressVisible && (
-        <div className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center z-50 transition">
+        <div className="absolute inset-0 bg-white flex flex-col items-center justify-center z-50 transition">
           <h2 className="text-xl font-semibold mb-6 text-primary">
             Redirecting...
           </h2>
@@ -239,6 +248,19 @@ const Home: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="w-full mt-auto relative text-foreground py-10 flex flex-col items-center justify-center overflow-hidden">
+        {/* Background overlay */}
+        <div className="relative z-10 text-center max-w-2xl px-4">
+          <h2 className="text-2xl font-bold mb-2">Disruptive Solutions Inc</h2>
+          <p className="text-sm text-muted-foreground">
+            Disruptive Solutions Inc. is Your Partner for Smart Solutions. 
+            With innovation at our core, we deliver premium, future-ready solutions that brighten spaces, reduce costs, 
+            and power smarter businesses.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
