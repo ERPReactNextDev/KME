@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
@@ -40,6 +40,29 @@ const Home: React.FC = () => {
   const [search, setSearch] = useState("");
   const [progressVisible, setProgressVisible] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [started, setStarted] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [animateStart, setAnimateStart] = useState(false);
+
+  // Check if START button should show (10 mins rule)
+  useEffect(() => {
+    const lastStart = sessionStorage.getItem("lastStartTime");
+    if (lastStart) {
+      const diff = Date.now() - parseInt(lastStart, 10);
+      if (diff < 10 * 60 * 1000) {
+        setStarted(true); // Don't show START if 10 mins not passed
+      }
+    }
+  }, []);
+
+  const handleStart = () => {
+    setAnimateStart(true);
+    sessionStorage.setItem("lastStartTime", Date.now().toString());
+
+    setTimeout(() => {
+      setStarted(true);
+    }, 500); // match animation duration
+  };
 
   const highlightMatch = (text: string | undefined, query: string) => {
     if (!text || !query) return text;
@@ -97,32 +120,52 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-start text-foreground py-16 px-6">
-      {/* Full page background */}
+    <div className="relative min-h-screen flex flex-col items-center justify-between text-foreground py-16 px-6">
+      {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-5 -z-10"
         style={{ backgroundImage: 'url("/disruptive.jpg")' }}
       />
 
       {/* Header */}
-      <div className="w-full max-w-2xl text-center mb-10">
+      <header className="relative z-10 text-center w-full max-w-2xl">
         <h1 className="text-4xl font-bold tracking-tight mb-2">
           Know My Employee
         </h1>
         <p className="text-muted-foreground text-sm">
           Search and explore employee details in real-time.
         </p>
-      </div>
+      </header>
+
+      {/* Start Button Overlay */}
+      {!started && (
+        <div
+          className={`absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md z-20 transition-opacity duration-500 ${animateStart ? "opacity-0" : "opacity-100"
+            }`}
+        >
+          <button
+            onClick={handleStart}
+            className={`w-40 h-40 rounded-full text-white text-xl font-bold flex items-center justify-center shadow-lg bg-cover bg-center transition-transform duration-500 ${animateStart ? "scale-150" : "scale-100"
+              }`}
+            style={{ backgroundImage: 'url("/KEME.png")' }}
+          ></button>
+        </div>
+      )}
 
       {/* Search */}
-      <div className="w-full max-w-lg">
-        <Search
-          setEmployees={setEmployees}
-          setLoading={setLoading}
-          setHasSearched={setHasSearched}
-          setSearch={setSearch}
-        />
-      </div>
+      {started && (
+        <div
+          className={`w-full max-w-lg transition-all duration-700 z-10 ${searchFocused ? "mt-4" : "mt-40"
+            }`}
+        >
+          <Search
+            setEmployees={setEmployees}
+            setLoading={setLoading}
+            setHasSearched={setHasSearched}
+            setSearch={setSearch}
+          />
+        </div>
+      )}
 
       {/* Spinner */}
       {loading && (
@@ -143,7 +186,8 @@ const Home: React.FC = () => {
               {Object.entries(
                 employees.reduce((acc, emp) => {
                   if (emp.isCompany) {
-                    if (!acc[emp.companyname || ""]) acc[emp.companyname || ""] = emp;
+                    if (!acc[emp.companyname || ""])
+                      acc[emp.companyname || ""] = emp;
                   } else {
                     acc[emp._id || `user-${Math.random()}`] = emp;
                   }
@@ -212,8 +256,13 @@ const Home: React.FC = () => {
                         size="sm"
                         onClick={() =>
                           emp.isCompany
-                            ? toast(`${emp.companyname}`, { description: "Company selected." })
-                            : handleView(emp._id, `${emp.Firstname || ""} ${emp.Lastname || ""}`)
+                            ? toast(`${emp.companyname}`, {
+                              description: "Company selected.",
+                            })
+                            : handleView(
+                              emp._id,
+                              `${emp.Firstname || ""} ${emp.Lastname || ""}`
+                            )
                         }
                         className="flex items-center gap-1"
                       >
@@ -226,14 +275,13 @@ const Home: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground">
-              No results found.
-            </p>
+            <p className="text-center text-muted-foreground">No results found.</p>
           )}
         </Card>
       )}
 
       {/* Fullscreen Progress Overlay */}
+
       {progressVisible && (
         <div className="absolute inset-0 bg-white flex flex-col items-center justify-center z-50 transition">
           <h2 className="text-xl font-semibold mb-6 text-primary">
@@ -251,13 +299,12 @@ const Home: React.FC = () => {
 
       {/* Footer */}
       <footer className="w-full mt-auto relative text-foreground py-10 flex flex-col items-center justify-center overflow-hidden">
-        {/* Background overlay */}
         <div className="relative z-10 text-center max-w-2xl px-4">
           <h2 className="text-2xl font-bold mb-2">Disruptive Solutions Inc</h2>
           <p className="text-sm text-muted-foreground">
-            Disruptive Solutions Inc. is Your Partner for Smart Solutions. 
-            With innovation at our core, we deliver premium, future-ready solutions that brighten spaces, reduce costs, 
-            and power smarter businesses.
+            Disruptive Solutions Inc. is Your Partner for Smart Solutions. With
+            innovation at our core, we deliver premium, future-ready solutions
+            that brighten spaces, reduce costs, and power smarter businesses.
           </p>
         </div>
       </footer>

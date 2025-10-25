@@ -42,6 +42,7 @@ const Search: React.FC<SearchProps> = ({
         setResultCount(0);
       }
     }, 500);
+
     return () => clearTimeout(delayDebounce);
   }, [query, searchType]);
 
@@ -97,6 +98,7 @@ const Search: React.FC<SearchProps> = ({
     <div className="w-full mb-6 flex justify-center">
       <div className="relative w-full max-w-2xl">
         <InputGroup className="w-full shadow-md rounded-xl py-6 border border-input bg-background focus-within:ring-2 focus-within:ring-primary/60 transition-all">
+          {/* Search type toggle */}
           <InputGroupAddon align="inline-start" className="pl-3">
             <div className="relative">
               <button
@@ -110,6 +112,7 @@ const Search: React.FC<SearchProps> = ({
             </div>
           </InputGroupAddon>
 
+          {/* Input */}
           <InputGroupInput
             placeholder={`Search ${searchType.toLowerCase()}...`}
             value={query}
@@ -117,6 +120,7 @@ const Search: React.FC<SearchProps> = ({
             className="text-base py-3 pl-2 rounded-xl focus-visible:ring-0 focus-visible:outline-none capitalize"
           />
 
+          {/* Loading / Result Count */}
           {isLoading ? (
             <InputGroupAddon align="inline-end">
               <InputGroupText className="text-sm text-muted-foreground">
