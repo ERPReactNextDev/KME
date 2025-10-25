@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Shifts - Room Reservation System",
+  title: "KME - Know My Employee",
   description: "Created in NextJs Developed By Fluxx Tech Solutions",
   icons: {
     icon: "/s.png",
