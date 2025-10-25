@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "KME - Know My Employee",
   description: "Created in NextJs Developed By Fluxx Tech Solutions",
   icons: {
-    icon: "/s.png",
+    icon: "/KEME.png",
   },
   manifest: "/manifest.json",
   // themeColor removed from metadata to avoid warning

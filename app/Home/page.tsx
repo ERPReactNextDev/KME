@@ -19,7 +19,7 @@ import { ChevronRightIcon } from "lucide-react";
 import Search from "../Components/Tool/Search";
 
 interface User {
-  _id: string;
+  _id?: string;
   Firstname?: string;
   Lastname?: string;
   Email?: string;
@@ -28,6 +28,8 @@ interface User {
   Department?: string;
   TargetQuota?: number | string;
   profilePicture?: string;
+  companyname?: string;
+  isCompany?: boolean;
 }
 
 const Home: React.FC = () => {
@@ -53,10 +55,13 @@ const Home: React.FC = () => {
     );
   };
 
-  const getInitials = (fname?: string, lname?: string) =>
-    `${fname?.[0] ?? ""}${lname?.[0] ?? ""}`.toUpperCase() || "NA";
+  const getInitials = (fname?: string, lname?: string) => {
+    const first = fname?.[0] ?? "";
+    const last = lname?.[0] ?? "";
+    return first || last ? `${first}${last}`.toUpperCase() : "--";
+  };
 
-  const getRandomColor = (id: string) => {
+  const getRandomColor = (id?: string, fname?: string, lname?: string) => {
     const colors = [
       "bg-blue-500",
       "bg-pink-500",
@@ -65,15 +70,17 @@ const Home: React.FC = () => {
       "bg-purple-500",
       "bg-orange-500",
     ];
-    return colors[id.charCodeAt(0) % colors.length];
+    const key = id || `${fname || ""}${lname || ""}` || "NA";
+    return colors[key.charCodeAt(0) % colors.length];
   };
 
-  const handleView = (empId: string, name: string) => {
-    toast(`Opening ${name}`, {
+  const handleView = (empId?: string, name?: string) => {
+    if (!empId) return;
+
+    toast(`Opening ${name || "Employee"}`, {
       description: "Preparing employee profile...",
     });
 
-    // Show fullscreen progress overlay
     setProgressVisible(true);
     setProgress(0);
 
@@ -91,7 +98,6 @@ const Home: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground flex flex-col items-center justify-start py-16 px-6">
-      {/* 🏷️ Header */}
       <div className="w-full max-w-2xl text-center mb-10">
         <h1 className="text-4xl font-bold tracking-tight mb-2">
           Know My Employee
@@ -101,7 +107,6 @@ const Home: React.FC = () => {
         </p>
       </div>
 
-      {/* 🔍 Search */}
       <div className="w-full max-w-lg">
         <Search
           setEmployees={setEmployees}
@@ -111,33 +116,44 @@ const Home: React.FC = () => {
         />
       </div>
 
-      {/* 🌀 Spinner */}
       {loading && (
         <Card className="flex items-center justify-between mt-6 p-4 text-sm shadow-sm border-muted max-w-lg w-full">
           <div className="flex items-center gap-3">
             <Spinner className="text-primary" />
-            <span>Searching employees...</span>
+            <span>Searching...</span>
           </div>
           <span className="text-xs text-muted-foreground">Please wait</span>
         </Card>
       )}
 
-      {/* 🧾 Results */}
       {!loading && hasSearched && (
         <Card className="mt-6 w-full max-w-lg shadow-md border-muted p-4">
           {employees.length > 0 ? (
             <div className="flex flex-col gap-4">
-              {employees.map((emp) => (
+              {/* Group companies by name */}
+              {Object.entries(
+                employees.reduce((acc, emp) => {
+                  if (emp.isCompany) {
+                    if (!acc[emp.companyname || ""]) acc[emp.companyname || ""] = emp;
+                  } else {
+                    acc[emp._id || `user-${Math.random()}`] = emp;
+                  }
+                  return acc;
+                }, {} as Record<string, User>)
+              ).map(([key, emp]) => (
                 <Item
-                  key={emp._id}
+                  key={key}
                   variant="outline"
                   className="flex items-center justify-between p-4 hover:bg-accent/30 transition rounded-lg"
                 >
                   <div className="flex items-center gap-4 w-full justify-between">
-                    {/* Left: Profile + Info */}
                     <div className="flex items-center gap-4 flex-1">
                       <ItemMedia>
-                        {emp.profilePicture ? (
+                        {emp.isCompany ? (
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm bg-gray-500">
+                            {emp.companyname?.[0] || "C"}
+                          </div>
+                        ) : emp.profilePicture ? (
                           <img
                             src={emp.profilePicture}
                             alt="Profile"
@@ -146,7 +162,9 @@ const Home: React.FC = () => {
                         ) : (
                           <div
                             className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm ${getRandomColor(
-                              emp._id
+                              emp._id,
+                              emp.Firstname,
+                              emp.Lastname
                             )}`}
                           >
                             {getInitials(emp.Firstname, emp.Lastname)}
@@ -155,36 +173,43 @@ const Home: React.FC = () => {
                       </ItemMedia>
 
                       <ItemContent>
-                        <ItemTitle className="capitalize font-semibold text-base">
-                          {highlightMatch(emp.Lastname, search)},{" "}
-                          {highlightMatch(emp.Firstname, search)}
-                        </ItemTitle>
-                        <ItemDescription className="text-xs text-muted-foreground">
-                          {highlightMatch(emp.Email || emp.userName, search)}
-                        </ItemDescription>
-                        <p className="text-xs mt-1 text-muted-foreground">
-                          <span className="font-medium text-foreground">
-                            Position:
-                          </span>{" "}
-                          {highlightMatch(emp.Position || "N/A", search)}
-                        </p>
+                        {emp.isCompany ? (
+                          <ItemTitle className="font-semibold text-base">
+                            {highlightMatch(emp.companyname, search)}
+                          </ItemTitle>
+                        ) : (
+                          <>
+                            <ItemTitle className="capitalize font-semibold text-base">
+                              {highlightMatch(emp.Lastname, search)},{" "}
+                              {highlightMatch(emp.Firstname, search)}
+                            </ItemTitle>
+                            <ItemDescription className="text-xs text-muted-foreground">
+                              {highlightMatch(emp.Email || emp.userName, search)}
+                            </ItemDescription>
+                            <p className="text-xs mt-1 text-muted-foreground">
+                              <span className="font-medium text-foreground">
+                                Position:
+                              </span>{" "}
+                              {highlightMatch(emp.Position || "N/A", search)}
+                            </p>
+                          </>
+                        )}
                       </ItemContent>
                     </div>
 
-                    {/* Right: Button */}
                     <ItemActions>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          handleView(
-                            emp._id,
-                            `${emp.Firstname || ""} ${emp.Lastname || ""}`
-                          )
+                          emp.isCompany
+                            ? toast(`${emp.companyname}`, { description: "Company selected." })
+                            : handleView(emp._id, `${emp.Firstname || ""} ${emp.Lastname || ""}`)
                         }
                         className="flex items-center gap-1"
                       >
-                        View <ChevronRightIcon className="w-4 h-4" />
+                        {emp.isCompany ? "Select" : "View"}{" "}
+                        {!emp.isCompany && <ChevronRightIcon className="w-4 h-4" />}
                       </Button>
                     </ItemActions>
                   </div>
@@ -193,13 +218,13 @@ const Home: React.FC = () => {
             </div>
           ) : (
             <p className="text-center text-muted-foreground">
-              No employees found.
+              No results found.
             </p>
           )}
         </Card>
       )}
 
-      {/* 🔄 Fullscreen Progress Overlay */}
+
       {progressVisible && (
         <div className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center z-50 transition">
           <h2 className="text-xl font-semibold mb-6 text-primary">
