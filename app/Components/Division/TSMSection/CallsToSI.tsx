@@ -1,6 +1,23 @@
 "use client";
 
 import React, { useMemo } from "react";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
 
 interface TSA {
   _id: string;
@@ -19,42 +36,51 @@ interface Progress {
 interface CallsToSIProps {
   filteredProgress: Progress[];
   tsaList: TSA[];
+  loading: boolean;
 }
 
-const CallsToSI: React.FC<CallsToSIProps> = ({ filteredProgress, tsaList }) => {
-  // Compute per-TSA stats
+const CallsToSI: React.FC<CallsToSIProps> = ({
+  filteredProgress,
+  tsaList,
+  loading,
+}) => {
+  // 🧮 Compute per-TSA stats
   const perTsaStats = useMemo(() => {
-    return tsaList
-      .map((tsa) => {
-        const calls = filteredProgress.filter(
-          (r) =>
-            r.referenceid === tsa.ReferenceID &&
-            r.source === "Outbound - Touchbase"
-        ).length;
+    return tsaList.map((tsa) => {
+      const calls = filteredProgress.filter(
+        (r) =>
+          r.referenceid === tsa.ReferenceID &&
+          r.source === "Outbound - Touchbase"
+      ).length;
 
-        const si = filteredProgress.filter(
-          (r) =>
-            r.referenceid === tsa.ReferenceID &&
-            r.activitystatus === "Delivered"
-        ).length;
+      const si = filteredProgress.filter(
+        (r) =>
+          r.referenceid === tsa.ReferenceID &&
+          r.activitystatus === "Delivered"
+      ).length;
 
-        const conversionRate = calls > 0 ? ((si / calls) * 100).toFixed(1) : "0";
+      const conversionRate = calls > 0 ? ((si / calls) * 100).toFixed(1) : "0";
 
-        return { tsa, calls, si, conversionRate };
-      })
-      .sort((a, b) => Number(b.conversionRate) - Number(a.conversionRate));
+      return { tsa, calls, si, conversionRate };
+    });
   }, [tsaList, filteredProgress]);
 
-  // Totals
-  const totals = useMemo(() => {
-    const totalCalls = perTsaStats.reduce((sum, t) => sum + t.calls, 0);
-    const totalSI = perTsaStats.reduce((sum, t) => sum + t.si, 0);
-    const conversionRate =
-      totalCalls > 0 ? ((totalSI / totalCalls) * 100).toFixed(1) : "0";
-    return { totalCalls, totalSI, conversionRate };
-  }, [perTsaStats]);
+  // 🏆 Sort by highest conversion rate
+  const rankedTSA = [...perTsaStats].sort(
+    (a, b) => Number(b.conversionRate) - Number(a.conversionRate)
+  );
 
-  // Badge for ranking
+  // 📊 Totals
+  const totalCalls = filteredProgress.filter(
+    (r) => r.source === "Outbound - Touchbase"
+  ).length;
+  const totalSI = filteredProgress.filter(
+    (r) => r.activitystatus === "Delivered"
+  ).length;
+  const totalConversion =
+    totalCalls > 0 ? ((totalSI / totalCalls) * 100).toFixed(1) : "0";
+
+  // 🥇 Rank badge
   const getBadge = (rank: number) => {
     switch (rank) {
       case 1:
@@ -69,78 +95,96 @@ const CallsToSI: React.FC<CallsToSIProps> = ({ filteredProgress, tsaList }) => {
   };
 
   return (
-    <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-xl border border-gray-200">
-      <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-        Calls to SI
-      </h2>
+    <div className="bg-white shadow-md rounded-lg p-6">
+      {/* 🧭 Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold">Calls to SI</h2>
+      </div>
 
-      {/* Totals Section */}
-      <div className="flex justify-around mb-6">
-        <div className="text-center">
-          <p className="text-sm text-gray-600 font-medium"># of Calls</p>
-          <p className="text-2xl font-bold text-blue-600">
-            {totals.totalCalls}
-          </p>
+      {/* 📈 Totals Summary */}
+      <div className="grid grid-cols-3 text-center mb-4">
+        <div>
+          <p className="text-sm text-gray-600 font-medium">Total Calls</p>
+          <p className="text-xl font-bold text-blue-600">{totalCalls}</p>
         </div>
-
-        <div className="text-center">
-          <p className="text-sm text-gray-600 font-medium"># of SI</p>
-          <p className="text-2xl font-bold text-green-600">
-            {totals.totalSI}
-          </p>
+        <div>
+          <p className="text-sm text-gray-600 font-medium">Total SI</p>
+          <p className="text-xl font-bold text-green-600">{totalSI}</p>
         </div>
-
-        <div className="text-center">
-          <p className="text-sm text-gray-600 font-medium">% Calls to SI</p>
-          <p className="text-2xl font-bold text-purple-600">
-            {totals.conversionRate}%
-          </p>
+        <div>
+          <p className="text-sm text-gray-600 font-medium">Conversion %</p>
+          <p className="text-xl font-bold text-purple-600">{totalConversion}%</p>
         </div>
       </div>
 
-      {/* TSA Ranking */}
-      <h3 className="text-md font-semibold mb-2">
-        TSAs Ranked by Calls to SI Conversion
-      </h3>
-      <ul className="space-y-2">
-        {perTsaStats.map(({ tsa, calls, si, conversionRate }, index) => (
-          <li
-            key={tsa._id}
-            className="flex items-center justify-between border-b py-2 hover:bg-gray-50 transition-all"
-          >
-            <div className="flex items-center space-x-3">
-              {/* Rank Badge */}
-              <span className="text-lg animate-bounce">{getBadge(index + 1)}</span>
+      {/* 🧾 Table */}
+      <Table>
+        <TableCaption>Calls to SI performance by TSA.</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[60px] text-center">Rank</TableHead>
+            <TableHead>TSA</TableHead>
+            <TableHead className="text-right">Calls</TableHead>
+            <TableHead className="text-right">SI</TableHead>
+            <TableHead className="text-right">Conversion %</TableHead>
+          </TableRow>
+        </TableHeader>
 
-              {/* Profile Picture */}
-              {tsa.profilePicture ? (
-                <img
-                  src={tsa.profilePicture}
-                  alt={`${tsa.Firstname} ${tsa.Lastname}`}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-medium capitalize">
-                  {tsa.Firstname?.[0]}
-                  {tsa.Lastname?.[0]}
-                </div>
-              )}
+        <TableBody>
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                Fetching data...
+              </TableCell>
+            </TableRow>
+          ) : rankedTSA.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                No TSA data found.
+              </TableCell>
+            </TableRow>
+          ) : (
+            rankedTSA.map(({ tsa, calls, si, conversionRate }, index) => (
+              <TableRow key={tsa._id} className="hover:bg-gray-50 cursor-pointer">
+                <TableCell className="text-center text-lg">
+                  {getBadge(index + 1)}
+                </TableCell>
 
-              {/* TSA Info */}
-              <div className="flex flex-col">
-                <span className="text-gray-800 capitalize font-medium">
-                  {tsa.Firstname} {tsa.Lastname}
-                </span>
-                <span className="text-sm text-gray-600">
-                  Calls: <span className="font-semibold">{calls}</span> | SI:{" "}
-                  <span className="font-semibold">{si}</span> | Conversion:{" "}
-                  <span className="font-semibold">{conversionRate}%</span>
-                </span>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+                <TableCell>
+                  <Item>
+                    <ItemMedia>
+                      <Avatar>
+                        <AvatarImage
+                          src={tsa.profilePicture || ""}
+                          alt={`${tsa.Firstname} ${tsa.Lastname}`}
+                        />
+                        <AvatarFallback>
+                          {tsa.Firstname?.[0]}
+                          {tsa.Lastname?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle className="capitalize font-medium">
+                        {tsa.Firstname} {tsa.Lastname}
+                      </ItemTitle>
+                      <ItemDescription className="text-xs text-muted-foreground">
+                        ID: {tsa.ReferenceID}
+                      </ItemDescription>
+                    </ItemContent>
+                  </Item>
+                </TableCell>
+
+                <TableCell className="text-right">{calls}</TableCell>
+                <TableCell className="text-right">{si}</TableCell>
+                <TableCell className="text-right font-semibold">
+                  {conversionRate}%
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 };

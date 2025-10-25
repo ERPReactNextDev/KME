@@ -177,6 +177,7 @@ const Card12: React.FC<Card12Props> = ({ tsmReferenceID, dateRange }) => {
                 <CallsToSI
                     filteredProgress={callRecords}
                     tsaList={tsaList}
+                    loading={loading}
                 />
             </div>
         </div>
