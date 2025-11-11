@@ -1,13 +1,25 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface Progress {
   typeactivity?: string;
   startdate?: string;
   enddate?: string;
+  companyname: string;
 }
 
 interface Card11Props {
@@ -16,24 +28,37 @@ interface Card11Props {
 }
 
 const Card11: React.FC<Card11Props> = ({ filteredProgress }) => {
-  // 🔹 Compute total duration per activity type
+  // Compute total duration and unique companies per activity type
   const activitySummary = useMemo(() => {
-    const summary: Record<string, number> = {};
+    type ActivityData = {
+      duration: number;
+      companies: Set<string>;
+    };
+
+    const summary: Record<string, ActivityData> = {};
 
     filteredProgress.forEach((rec) => {
       if (!rec.typeactivity || !rec.startdate || !rec.enddate) return;
       const start = new Date(rec.startdate);
       const end = new Date(rec.enddate);
-      if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return;
+      if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start)
+        return;
 
       const duration = end.getTime() - start.getTime();
-      summary[rec.typeactivity] = (summary[rec.typeactivity] || 0) + duration;
+      const type = rec.typeactivity;
+      const company = rec.companyname;
+
+      if (!summary[type]) {
+        summary[type] = { duration: 0, companies: new Set() };
+      }
+      summary[type].duration += duration;
+      summary[type].companies.add(company);
     });
 
     return summary;
   }, [filteredProgress]);
 
-  // 🔹 Format duration (HH:MM:SS)
+  // Format milliseconds to HH:MM:SS
   const formatDuration = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const h = Math.floor(totalSeconds / 3600);
@@ -45,11 +70,17 @@ const Card11: React.FC<Card11Props> = ({ filteredProgress }) => {
 
   const activityTypes = Object.keys(activitySummary);
 
-  // 🔹 Total duration across all activities
-  const totalDuration = Object.values(activitySummary).reduce(
-    (sum, ms) => sum + ms,
+  // Total duration overall
+  const totalDuration = activityTypes.reduce(
+    (sum, type) => sum + activitySummary[type].duration,
     0
   );
+
+  // Total unique companies overall
+  const totalCompanies = new Set<string>();
+  activityTypes.forEach((type) => {
+    activitySummary[type].companies.forEach((c) => totalCompanies.add(c));
+  });
 
   return (
     <Card className="p-6 rounded-2xl border border-gray-200">
@@ -71,26 +102,43 @@ const Card11: React.FC<Card11Props> = ({ filteredProgress }) => {
           </p>
         ) : (
           <>
-            {/* 🔸 Total Duration Row */}
+            {/* Total Duration & Companies */}
             <div className="flex flex-row justify-between items-center border-b pb-2">
               <CardDescription className="font-medium">Total Duration</CardDescription>
               <CardTitle className="text-lg font-semibold">
                 {formatDuration(totalDuration)}
               </CardTitle>
             </div>
+            <div className="flex flex-row justify-between items-center border-b pb-4">
+              <CardDescription className="font-medium">Total Companies</CardDescription>
+              <CardTitle className="text-lg font-semibold">{totalCompanies.size}</CardTitle>
+            </div>
 
-            {/* 🔸 Individual Activities */}
-            {activityTypes.map((type, idx) => (
-              <div
-                key={idx}
-                className="flex flex-row justify-between items-center border-b last:border-b-0 pb-2"
-              >
-                <CardDescription>{type}</CardDescription>
-                <CardTitle className="text-lg font-semibold">
-                  {formatDuration(activitySummary[type])}
-                </CardTitle>
-              </div>
-            ))}
+            {/* Activities with Accordion for company names */}
+            <Accordion type="multiple" className="w-full">
+              {activityTypes.map((type) => (
+                <AccordionItem key={type} value={type}>
+                  <AccordionTrigger className="flex justify-between items-center">
+                    <span>{type}</span>
+                    <span className="font-semibold">
+                      {formatDuration(activitySummary[type].duration)}
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="text-sm text-muted-foreground mt-2">
+                      <p className="mb-1 font-medium">
+                        Companies ({activitySummary[type].companies.size}):
+                      </p>
+                      <ul className="list-disc list-inside max-h-40 overflow-auto">
+                        {[...activitySummary[type].companies].map((company) => (
+                          <li key={company}>{company}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </>
         )}
       </CardContent>

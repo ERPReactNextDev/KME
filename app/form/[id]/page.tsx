@@ -39,6 +39,7 @@ interface Progress {
   id?: number;
   referenceid: string;
   typeactivity?: string;
+  companyname: string;
   startdate?: string;
   enddate?: string;
   date_created?: string;
@@ -206,6 +207,7 @@ const EmployeeFormPage = () => {
                 typeactivity: p.typeactivity,
                 startdate: p.startdate,
                 enddate: p.enddate,
+                companyname: p.companyname
               }))}
               dateRange={{ start: startDate, end: endDate }}
             />
