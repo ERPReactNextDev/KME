@@ -28,11 +28,12 @@ interface Card11Props {
 }
 
 const Card11: React.FC<Card11Props> = ({ filteredProgress }) => {
-  // Compute total duration and unique companies per activity type
+  // Compute total duration and per-company durations per activity type
   const activitySummary = useMemo(() => {
     type ActivityData = {
       duration: number;
       companies: Set<string>;
+      companyDurations: Record<string, number>;
     };
 
     const summary: Record<string, ActivityData> = {};
@@ -49,10 +50,16 @@ const Card11: React.FC<Card11Props> = ({ filteredProgress }) => {
       const company = rec.companyname;
 
       if (!summary[type]) {
-        summary[type] = { duration: 0, companies: new Set() };
+        summary[type] = {
+          duration: 0,
+          companies: new Set(),
+          companyDurations: {},
+        };
       }
       summary[type].duration += duration;
       summary[type].companies.add(company);
+      summary[type].companyDurations[company] =
+        (summary[type].companyDurations[company] || 0) + duration;
     });
 
     return summary;
@@ -103,35 +110,39 @@ const Card11: React.FC<Card11Props> = ({ filteredProgress }) => {
         ) : (
           <>
             {/* Total Duration & Companies */}
-            <div className="flex flex-row justify-between items-center border-b pb-2">
+            <div className="flex justify-between items-center border-b pb-2">
               <CardDescription className="font-medium">Total Duration</CardDescription>
-              <CardTitle className="text-lg font-semibold">
+              <CardTitle className="text-lg font-semibold text-right w-24">
                 {formatDuration(totalDuration)}
               </CardTitle>
             </div>
-            <div className="flex flex-row justify-between items-center border-b pb-4">
+            <div className="flex justify-between items-center border-b pb-4">
               <CardDescription className="font-medium">Total Companies</CardDescription>
-              <CardTitle className="text-lg font-semibold">{totalCompanies.size}</CardTitle>
+              <CardTitle className="text-lg font-semibold text-right w-24">{totalCompanies.size}</CardTitle>
             </div>
 
-            {/* Activities with Accordion for company names */}
+            {/* Activities with Accordion for company names and durations */}
             <Accordion type="multiple" className="w-full">
               {activityTypes.map((type) => (
                 <AccordionItem key={type} value={type}>
                   <AccordionTrigger className="flex justify-between items-center">
-                    <span>{type}</span>
-                    <span className="font-semibold">
-                      {formatDuration(activitySummary[type].duration)}
-                    </span>
+                    <span>{formatDuration(activitySummary[type].duration)} | {type} - ({activitySummary[type].companies.size})</span>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="text-sm text-muted-foreground mt-2">
                       <p className="mb-1 font-medium">
-                        Companies ({activitySummary[type].companies.size}):
+                        Companies: 
                       </p>
                       <ul className="list-disc list-inside max-h-40 overflow-auto">
                         {[...activitySummary[type].companies].map((company) => (
-                          <li key={company}>{company}</li>
+                          <li key={company} className="flex justify-between">
+                            <span>{company}</span>
+                            <span className="ml-4 tabular-nums">
+                              {formatDuration(
+                                activitySummary[type].companyDurations[company]
+                              )}
+                            </span>
+                          </li>
                         ))}
                       </ul>
                     </div>
